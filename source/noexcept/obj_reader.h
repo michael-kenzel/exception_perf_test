@@ -148,6 +148,7 @@ namespace OBJ
 		{
 		}
 
+		[[nodiscard]]
 		bool consume(OBJ::Stream& stream, char c) noexcept
 		{
 			switch (c)
@@ -228,7 +229,7 @@ namespace OBJ
 
 			default:
 				stream.error("unknown command");
-				break;
+				return false;
 
 			case '#':
 				stream.skipLine();

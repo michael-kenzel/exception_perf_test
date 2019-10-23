@@ -251,7 +251,8 @@ namespace OBJ
 		}
 
 		template <typename Consumer>
-		void consume(Consumer&& consumer) noexcept
+		[[nodiscard]]
+		OBJ::error consume(Consumer&& consumer) noexcept
 		{
 			while (ptr != end)
 			{
@@ -274,6 +275,7 @@ namespace OBJ
 			}
 
 			endFile();
+			return OBJ::error::SUCCESS
 		}
 	};
 }

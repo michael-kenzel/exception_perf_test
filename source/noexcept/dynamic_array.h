@@ -95,6 +95,7 @@ private:
 		return std::max(capacity + capacity / 2, new_size);
 	}
 
+	[[nodiscard]]
 	bool grow(size_type new_size) noexcept
 	{
 		if (new_size > capacity)
@@ -125,6 +126,7 @@ public:
 	}
 
 	template <typename... Args>
+	[[nodiscard]]
 	bool emplace_back(Args&&... args) noexcept
 	{
 		if (!grow(size + 1))
@@ -133,6 +135,7 @@ public:
 		return true;
 	}
 
+	[[nodiscard]]
 	bool push_back(const T& v) noexcept
 	{
 		return emplace_back(v);
