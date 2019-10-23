@@ -13,7 +13,8 @@ namespace OBJ
 	{
 		Consumer& consumer;
 
-		void consumeVertex(OBJ::Stream& stream) noexcept
+		[[nodiscard]]
+		bool consumeVertex(OBJ::Stream& stream) noexcept
 		{
 			float x = stream.expectFloat();
 			stream.expectHorizontalWS();
@@ -29,10 +30,11 @@ namespace OBJ
 			}
 
 			stream.expectLineEnd();
-			consumer.consumeVertex(stream, x, y, z);
+			return consumer.consumeVertex(stream, x, y, z);
 		}
 
-		void consumeNormal(OBJ::Stream& stream) noexcept
+		[[nodiscard]]
+		bool consumeNormal(OBJ::Stream& stream) noexcept
 		{
 			float x = stream.expectFloat();
 			stream.expectHorizontalWS();
@@ -41,10 +43,11 @@ namespace OBJ
 			float z = stream.expectFloat();
 			stream.expectLineEnd();
 
-			consumer.consumeNormal(stream, x, y, z);
+			return consumer.consumeNormal(stream, x, y, z);
 		}
 
-		void consumeTexcoord(OBJ::Stream& stream) noexcept
+		[[nodiscard]]
+		bool consumeTexcoord(OBJ::Stream& stream) noexcept
 		{
 			float u = stream.expectFloat();
 
@@ -66,7 +69,8 @@ namespace OBJ
 			consumer.consumeTexcoord(stream, u);
 		}
 
-		void consumeFace(OBJ::Stream& stream) noexcept
+		[[nodiscard]]
+		bool consumeFace(OBJ::Stream& stream) noexcept
 		{
 			do
 			{
@@ -88,7 +92,8 @@ namespace OBJ
 			consumer.finishFace(stream);
 		}
 
-		void consumeObjectName(OBJ::Stream& stream) noexcept
+		[[nodiscard]]
+		bool consumeObjectName(OBJ::Stream& stream) noexcept
 		{
 			auto name = stream.expectNonWS();
 
@@ -101,7 +106,8 @@ namespace OBJ
 			consumer.consumeObjectName(stream, name);
 		}
 
-		void consumeGroupName(OBJ::Stream& stream) noexcept
+		[[nodiscard]]
+		bool consumeGroupName(OBJ::Stream& stream) noexcept
 		{
 			do
 			{
@@ -112,7 +118,8 @@ namespace OBJ
 			consumer.finishGroupAssignment(stream);
 		}
 
-		void consumeSmoothingGroup(OBJ::Stream& stream) noexcept
+		[[nodiscard]]
+		bool consumeSmoothingGroup(OBJ::Stream& stream) noexcept
 		{
 			int n;
 
@@ -128,14 +135,16 @@ namespace OBJ
 			consumer.consumeSmoothingGroup(stream, n);
 		}
 
-		void consumeMtlLib(OBJ::Stream& stream) noexcept
+		[[nodiscard]]
+		bool consumeMtlLib(OBJ::Stream& stream) noexcept
 		{
 			auto name = stream.expectNonWS();
 			stream.expectLineEnd();
 			consumer.consumeMtlLib(stream, name);
 		}
 
-		void consumeUseMtl(OBJ::Stream& stream) noexcept
+		[[nodiscard]]
+		bool consumeUseMtl(OBJ::Stream& stream) noexcept
 		{
 			auto name = stream.expectNonWS();
 			stream.expectLineEnd();

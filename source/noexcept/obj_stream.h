@@ -275,7 +275,7 @@ namespace OBJ
 			}
 
 			endFile();
-			return OBJ::error::SUCCESS
+			return OBJ::error::SUCCESS;
 		}
 	};
 }

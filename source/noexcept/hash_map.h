@@ -7,6 +7,7 @@
 #include <utility>
 #include <new>
 #include <memory>
+#include <optional>
 #include <functional>
 #include <algorithm>
 
@@ -30,7 +31,7 @@ private:
 
 public:
 	template <typename... Args>
-	std::pair<pointer, bool> try_emplace(const key_type& key, Args&&... args)
+	std::optional<std::pair<pointer, bool>> try_emplace(const key_type& key, Args&&... args)
 	{
 		return {};
 	}
