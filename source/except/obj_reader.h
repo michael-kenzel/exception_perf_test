@@ -76,10 +76,10 @@ namespace OBJ
 
 				if (stream.consume<'/'>())
 				{
-					stream.consumeInteger(t);
+					t = stream.expectInteger();
 
 					if (stream.consume<'/'>())
-						stream.consumeInteger(n);
+						n = stream.expectInteger();
 				}
 
 				consumer.consumeFaceVertex(stream, v, n, t);

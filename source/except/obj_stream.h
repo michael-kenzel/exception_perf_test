@@ -100,15 +100,15 @@ namespace OBJ
 			return false;
 		}
 
-		template <char C>
-		bool expect()
-		{
-			if (!consume<C>())
-			{
-				constexpr const char msg[] = { 'e', 'x', 'p', 'e', 'c', 't', 'e', 'd', '\'', C, '\'' };
-				throwError({ msg, std::size(msg) });
-			}
-		}
+		//template <char C>
+		//void expect()
+		//{
+		//	if (!consume<C>())
+		//	{
+		//		constexpr const char msg[] = { 'e', 'x', 'p', 'e', 'c', 't', 'e', 'd', '\'', C, '\'' };
+		//		throwError({ msg, std::size(msg) });
+		//	}
+		//}
 
 		bool consumeHorizontalWS()
 		{
@@ -169,10 +169,10 @@ namespace OBJ
 		{
 			auto [token_end, err] = std::from_chars(ptr, end, n);
 
-			if (static_cast<bool>(err))
+			if (err != std::errc())
 			{
 				if (err == std::errc::result_out_of_range)
-					throwError("decimal number out of range"sv);
+					throwError("integer out of range"sv);
 				return false;
 			}
 
@@ -183,27 +183,16 @@ namespace OBJ
 
 		int expectInteger()
 		{
-			int n;
-			auto [token_end, err] = std::from_chars(ptr, end, n);
-
-			if (static_cast<bool>(err))
-			{
-				if (err == std::errc::result_out_of_range)
-					throwError("decimal number out of range"sv);
-				throwError("expected decimal number"sv);
-			}
-
-			ptr = token_end;
-
-			return n;
+			if (int n; consumeInteger(n))
+				return n;
+			throwError("expected integer"sv);
 		}
 
 		bool consumeFloat(float& f)
 		{
-#ifdef _MSC_VER
 			auto [token_end, err] = std::from_chars(ptr, end, f);
 
-			if (static_cast<bool>(err))
+			if (err != std::errc())
 			{
 				if (err == std::errc::result_out_of_range)
 					throwError("floating point number out of range"sv);
@@ -213,46 +202,13 @@ namespace OBJ
 			ptr = token_end;
 
 			return true;
-#else  // WORKAROUND for lack of std::from_chars in gcc and clang
-			char* token_end;
-			f = std::strtof(ptr, &token_end);
-
-			if (token_end == ptr)
-				return false;
-
-			ptr = token_end;
-
-			return true;
-#endif
 		}
 
 		float expectFloat()
 		{
-#ifdef _MSC_VER
-			float f;
-			auto [token_end, err] = std::from_chars(ptr, end, f);
-
-			if (static_cast<bool>(err))
-			{
-				if (err == std::errc::result_out_of_range)
-					throwError("floating point number out of range"sv);
-				throwError("expected floating point number"sv);
-			}
-
-			ptr = token_end;
-
-			return f;
-#else  // WORKAROUND for lack of std::from_chars in gcc and clang
-			char* token_end;
-			float f = std::strtof(ptr, &token_end);
-
-			if (token_end == ptr)
-				throwError("expected floating point number"sv);
-
-			ptr = token_end;
-
-			return f;
-#endif
+			if (float f; consumeFloat(f))
+				return f;
+			throwError("expected floating point number"sv);
 		}
 
 		template <typename Consumer>

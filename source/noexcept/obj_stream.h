@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <charconv>
 #include <string_view>
+#include <optional>
 #include <cstdio>
 
 #include "obj.h"
@@ -95,16 +96,6 @@ namespace OBJ
 			return false;
 		}
 
-		template <char C>
-		bool expect() noexcept
-		{
-			if (!consume<C>())
-			{
-				constexpr const char msg[] = { 'e', 'x', 'p', 'e', 'c', 't', 'e', 'd', '\'', C, '\'', '\0' };
-				error(msg);
-			}
-		}
-
 		bool consumeHorizontalWS() noexcept
 		{
 			if (ptr == end || (*ptr != ' ' && *ptr != '\t' && *ptr != '\r'))
@@ -115,10 +106,16 @@ namespace OBJ
 			return true;
 		}
 
-		void expectHorizontalWS() noexcept
+		[[nodiscard]]
+		bool expectHorizontalWS() noexcept
 		{
 			if (!consumeHorizontalWS())
+			{
 				error("expected horizontal white space");
+				return false;
+			}
+
+			return true;
 		}
 
 		bool finishLine() noexcept
@@ -138,10 +135,16 @@ namespace OBJ
 			return false;
 		}
 
-		void expectLineEnd() noexcept
+		[[nodiscard]]
+		bool expectLineEnd() noexcept
 		{
 			if (!finishLine())
+			{
 				error("expected newline");
+				return false;
+			}
+
+			return true;
 		}
 
 		std::string_view consumeNonWS() noexcept
@@ -152,22 +155,27 @@ namespace OBJ
 			return { begin, static_cast<std::size_t>(ptr - begin) };
 		}
 
-		std::string_view expectNonWS() noexcept
+		[[nodiscard]]
+		std::optional<std::string_view> expectNonWS() noexcept
 		{
 			auto v = consumeNonWS();
 			if (v.empty())
+			{
 				error("expected string");
+				return {};
+			}
 			return v;
 		}
 
-		bool consumeInteger(int& n) noexcept
+		[[nodiscard]]
+		bool consumeInteger(int& n)
 		{
 			auto [token_end, err] = std::from_chars(ptr, end, n);
 
-			if (static_cast<bool>(err))
+			if (err != std::errc())
 			{
 				if (err == std::errc::result_out_of_range)
-					error("decimal number out of range");
+					error("integer out of range");
 				return false;
 			}
 
@@ -176,29 +184,21 @@ namespace OBJ
 			return true;
 		}
 
-		int expectInteger() noexcept
+		[[nodiscard]]
+		std::optional<int> expectInteger()
 		{
-			int n;
-			auto [token_end, err] = std::from_chars(ptr, end, n);
-
-			if (static_cast<bool>(err))
-			{
-				if (err == std::errc::result_out_of_range)
-					error("decimal number out of range");
-				error("expected decimal number");
-			}
-
-			ptr = token_end;
-
-			return n;
+			if (int n; consumeInteger(n))
+				return n;
+			error("expected integer");
+			return {};
 		}
 
-		bool consumeFloat(float& f) noexcept
+		[[nodiscard]]
+		bool consumeFloat(float& f)
 		{
-#ifdef _MSC_VER
 			auto [token_end, err] = std::from_chars(ptr, end, f);
 
-			if (static_cast<bool>(err))
+			if (err != std::errc())
 			{
 				if (err == std::errc::result_out_of_range)
 					error("floating point number out of range");
@@ -208,46 +208,15 @@ namespace OBJ
 			ptr = token_end;
 
 			return true;
-#else  // WORKAROUND for lack of std::from_chars in gcc and clang
-			char* token_end;
-			f = std::strtof(ptr, &token_end);
-
-			if (token_end == ptr)
-				return false;
-
-			ptr = token_end;
-
-			return true;
-#endif
 		}
 
-		float expectFloat() noexcept
+		[[nodiscard]]
+		std::optional<float> expectFloat()
 		{
-#ifdef _MSC_VER
-			float f;
-			auto [token_end, err] = std::from_chars(ptr, end, f);
-
-			if (static_cast<bool>(err))
-			{
-				if (err == std::errc::result_out_of_range)
-					error("floating point number out of range");
-				error("expected floating point number");
-			}
-
-			ptr = token_end;
-
-			return f;
-#else  // WORKAROUND for lack of std::from_chars in gcc and clang
-			char* token_end;
-			float f = std::strtof(ptr, &token_end);
-
-			if (token_end == ptr)
-				error("expected floating point number");
-
-			ptr = token_end;
-
-			return f;
-#endif
+			if (float f; consumeFloat(f))
+				return f;
+			error("expected floating point number");
+			return {};
 		}
 
 		template <typename Consumer>

@@ -16,57 +16,71 @@ namespace OBJ
 		[[nodiscard]]
 		bool consumeVertex(OBJ::Stream& stream) noexcept
 		{
-			float x = stream.expectFloat();
-			stream.expectHorizontalWS();
-			float y = stream.expectFloat();
-			stream.expectHorizontalWS();
-			float z = stream.expectFloat();
-
-			if (float w; stream.consumeHorizontalWS() && stream.consumeFloat(w))
+			if (auto x = stream.expectFloat(); x && stream.expectHorizontalWS())
 			{
-				stream.expectLineEnd();
-				consumer.consumeVertex(stream, x, y, z, w);
-				return;
+				if (float y = stream.expectFloat(); y && stream.expectHorizontalWS())
+				{
+					if (float z = stream.expectFloat())
+					{
+						if (float w; stream.consumeHorizontalWS() && stream.consumeFloat(w))
+						{
+							if (!stream.expectLineEnd())
+								return false;
+							return consumer.consumeVertex(stream, *x, *y, *z, w);
+						}
+
+						if (!stream.expectLineEnd())
+							return false;
+						return consumer.consumeVertex(stream, *x, *y, *z);
+					}
+				}
 			}
 
-			stream.expectLineEnd();
-			return consumer.consumeVertex(stream, x, y, z);
+			return false;
 		}
 
 		[[nodiscard]]
 		bool consumeNormal(OBJ::Stream& stream) noexcept
 		{
-			float x = stream.expectFloat();
-			stream.expectHorizontalWS();
-			float y = stream.expectFloat();
-			stream.expectHorizontalWS();
-			float z = stream.expectFloat();
-			stream.expectLineEnd();
+			if (auto x = stream.expectFloat(); x && stream.expectHorizontalWS())
+			{
+				if (auto y = stream.expectFloat(); y && stream.expectHorizontalWS())
+				{
+					if (auto z = stream.expectFloat(); z && stream.expectLineEnd())
+					{
+						return consumer.consumeNormal(stream, *x, *y, *z);
+					}
+				}
+			}
 
-			return consumer.consumeNormal(stream, x, y, z);
+			return false;
 		}
 
 		[[nodiscard]]
 		bool consumeTexcoord(OBJ::Stream& stream) noexcept
 		{
-			float u = stream.expectFloat();
-
-			if (float v; stream.consumeHorizontalWS() && stream.consumeFloat(v))
+			if (auto u = stream.expectFloat())
 			{
-				if (float w; stream.consumeHorizontalWS() && stream.consumeFloat(w))
+				if (float v; stream.consumeHorizontalWS() && stream.consumeFloat(v))
 				{
-					stream.expectLineEnd();
-					consumer.consumeTexcoord(stream, u, v, w);
-					return;
+					if (float w; stream.consumeHorizontalWS() && stream.consumeFloat(w))
+					{
+						if (!stream.expectLineEnd())
+							return false;
+						return consumer.consumeTexcoord(stream, *u, v, w);
+					}
+
+					if (!stream.expectLineEnd())
+						return false;
+					return consumer.consumeTexcoord(stream, *u, v);
 				}
 
-				stream.expectLineEnd();
-				consumer.consumeTexcoord(stream, u, v);
-				return;
+				if (!stream.expectLineEnd())
+					return false;
+				return consumer.consumeTexcoord(stream, *u);
 			}
 
-			stream.expectLineEnd();
-			consumer.consumeTexcoord(stream, u);
+			return false;
 		}
 
 		[[nodiscard]]
@@ -80,30 +94,37 @@ namespace OBJ
 
 				if (stream.consume<'/'>())
 				{
-					stream.consumeInteger(t);
+					t = stream.expectInteger();
 
 					if (stream.consume<'/'>())
-						stream.consumeInteger(n);
+						n = stream.expectInteger();
 				}
 
 				consumer.consumeFaceVertex(stream, v, n, t);
 			} while (!stream.finishLine());
 
-			consumer.finishFace(stream);
+			return consumer.finishFace(stream);
 		}
 
 		[[nodiscard]]
 		bool consumeObjectName(OBJ::Stream& stream) noexcept
 		{
-			auto name = stream.expectNonWS();
-
-			while (!stream.finishLine())
+			if (auto name = stream.expectNonWS())
 			{
-				auto n = stream.consumeNonWS();
-				name = { &name[0], static_cast<std::size_t>((&n[0] + size(n)) - &name[0]) };
+				while (!stream.finishLine())
+				{
+					auto n = stream.consumeNonWS();
+
+					if (!n)
+						return false;
+
+					*name = { &*name[0], static_cast<std::size_t>((&*n[0] + size(n)) - &*name[0]) };
+				}
+
+				return consumer.consumeObjectName(stream, *name);
 			}
 
-			consumer.consumeObjectName(stream, name);
+			return false;
 		}
 
 		[[nodiscard]]
@@ -111,11 +132,14 @@ namespace OBJ
 		{
 			do
 			{
-				auto name = stream.expectNonWS();
-				consumer.consumeGroupName(stream, name);
+				if (auto name = stream.expectNonWS())
+				{
+					if (!consumer.consumeGroupName(stream, *name))
+						return false;
+				}
 			} while (!stream.finishLine());
 
-			consumer.finishGroupAssignment(stream);
+			return consumer.finishGroupAssignment(stream);
 		}
 
 		[[nodiscard]]
@@ -126,29 +150,36 @@ namespace OBJ
 			if (!stream.consumeInteger(n))
 			{
 				if (stream.consume<'o', 'f', 'f'>())
+				{
 					n = 0;
+				}
 				else
+				{
 					stream.error("expected smoothing group index or 'off'");
+					return false;
+				}
 			}
 
-			stream.expectLineEnd();
-			consumer.consumeSmoothingGroup(stream, n);
+			if (!stream.expectLineEnd())
+				return false;
+
+			return consumer.consumeSmoothingGroup(stream, n);
 		}
 
 		[[nodiscard]]
 		bool consumeMtlLib(OBJ::Stream& stream) noexcept
 		{
-			auto name = stream.expectNonWS();
-			stream.expectLineEnd();
-			consumer.consumeMtlLib(stream, name);
+			if (auto name = stream.expectNonWS(); name && stream.expectLineEnd())
+				return consumer.consumeMtlLib(stream, *name);
+			return false;
 		}
 
 		[[nodiscard]]
 		bool consumeUseMtl(OBJ::Stream& stream) noexcept
 		{
-			auto name = stream.expectNonWS();
-			stream.expectLineEnd();
-			consumer.consumeUseMtl(stream, name);
+			if (auto name = stream.expectNonWS(); name && stream.expectLineEnd())
+				return consumer.consumeUseMtl(stream, name);
+			return false;
 		}
 
 	public:
@@ -165,14 +196,16 @@ namespace OBJ
 			case 'v':
 				if (stream.consumeHorizontalWS())
 				{
-					consumeVertex(stream);
+					if (!consumeVertex(stream))
+						return false;
 					break;
 				}
 				else if (stream.consume<'n'>())
 				{
 					if (stream.consumeHorizontalWS())
 					{
-						consumeNormal(stream);
+						if (!consumeNormal(stream))
+							return false;
 						break;
 					}
 				}
@@ -180,7 +213,8 @@ namespace OBJ
 				{
 					if (stream.consumeHorizontalWS())
 					{
-						consumeTexcoord(stream);
+						if (!consumeTexcoord(stream))
+							return false;
 						break;
 					}
 				}
@@ -189,7 +223,8 @@ namespace OBJ
 			case 'f':
 				if (stream.consumeHorizontalWS())
 				{
-					consumeFace(stream);
+					if (!consumeFace(stream))
+						return false;
 					break;
 				}
 				[[fallthrough]];
@@ -197,7 +232,8 @@ namespace OBJ
 			case 'o':
 				if (stream.consumeHorizontalWS())
 				{
-					consumeObjectName(stream);
+					if (!consumeObjectName(stream))
+						return false;
 					break;
 				}
 				[[fallthrough]];
@@ -205,7 +241,8 @@ namespace OBJ
 			case 'g':
 				if (stream.consumeHorizontalWS())
 				{
-					consumeGroupName(stream);
+					if (!consumeGroupName(stream))
+						return false;
 					break;
 				}
 				[[fallthrough]];
@@ -213,7 +250,8 @@ namespace OBJ
 			case 's':
 				if (stream.consumeHorizontalWS())
 				{
-					consumeSmoothingGroup(stream);
+					if (!consumeSmoothingGroup(stream))
+						return false;
 					break;
 				}
 				[[fallthrough]];
@@ -222,7 +260,8 @@ namespace OBJ
 				if (stream.consume<'t', 'l', 'l', 'i', 'b'>())
 				{
 					if (stream.consumeHorizontalWS())
-						consumeMtlLib(stream);
+						if (!consumeMtlLib(stream))
+							return false;
 					break;
 				}
 				[[fallthrough]];
@@ -231,7 +270,8 @@ namespace OBJ
 				if (stream.consume<'s', 'e', 'm', 't', 'l'>())
 				{
 					if (stream.consumeHorizontalWS())
-						consumeUseMtl(stream);
+						if (!consumeUseMtl(stream))
+							return false;
 					break;
 				}
 				[[fallthrough]];
