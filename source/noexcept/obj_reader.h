@@ -18,9 +18,9 @@ namespace OBJ
 		{
 			if (auto x = stream.expectFloat(); x && stream.expectHorizontalWS())
 			{
-				if (float y = stream.expectFloat(); y && stream.expectHorizontalWS())
+				if (auto y = stream.expectFloat(); y && stream.expectHorizontalWS())
 				{
-					if (float z = stream.expectFloat())
+					if (auto z = stream.expectFloat())
 					{
 						if (float w; stream.consumeHorizontalWS() && stream.consumeFloat(w))
 						{
@@ -88,19 +88,24 @@ namespace OBJ
 		{
 			do
 			{
-				int v = stream.expectInteger();
+				auto v = stream.expectInteger();
+
+				if (!v)
+					return false;
+
 				int t = 0;
 				int n = 0;
 
 				if (stream.consume<'/'>())
 				{
-					t = stream.expectInteger();
+					stream.consumeInteger(t);
 
 					if (stream.consume<'/'>())
-						n = stream.expectInteger();
+						stream.consumeInteger(n);
 				}
 
-				consumer.consumeFaceVertex(stream, v, n, t);
+				if (!consumer.consumeFaceVertex(stream, v, n, t))
+					return false;
 			} while (!stream.finishLine());
 
 			return consumer.finishFace(stream);
