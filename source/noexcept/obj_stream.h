@@ -167,7 +167,7 @@ namespace OBJ
 			return v;
 		}
 
-		[[nodiscard]]
+		//[[nodiscard]]
 		bool consumeInteger(int& n)
 		{
 			auto [token_end, err] = std::from_chars(ptr, end, n);
@@ -193,7 +193,7 @@ namespace OBJ
 			return {};
 		}
 
-		[[nodiscard]]
+		//[[nodiscard]]
 		bool consumeFloat(float& f)
 		{
 			auto [token_end, err] = std::from_chars(ptr, end, f);
@@ -237,8 +237,8 @@ namespace OBJ
 					break;
 
 				default:
-					if (!consumer.consume(*this, c))
-						return;
+					if (auto ret = consumer.consume(*this, c); ret != OBJ::error::SUCCESS)
+						return ret;
 					break;
 				}
 			}

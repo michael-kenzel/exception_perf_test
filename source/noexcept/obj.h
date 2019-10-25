@@ -19,7 +19,8 @@ namespace OBJ
 		FAILED_TO_OPEN_FILE,
 		FAILED_TO_READ_FILE,
 		SYNTAX_ERROR,
-		UNSUPPORTED_FEATURE
+		UNSUPPORTED_FEATURE,
+		ALLOCATION_FAILED
 	};
 
 	const char* describeError(error) noexcept;

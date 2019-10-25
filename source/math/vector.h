@@ -26,67 +26,67 @@ namespace math
 
 		vector() = default;
 
-		constexpr vector(F x, F y)
+		constexpr vector(F x, F y) noexcept
 			: x(x), y(y)
 		{
 		}
 
-		constexpr explicit vector(F a)
+		constexpr explicit vector(F a) noexcept
 			: vector { a, a }
 		{
 		}
 
 		template <typename U>
-		constexpr vector(const vector<U, 2>& v)
+		constexpr vector(const vector<U, 2>& v) noexcept
 			: vector { v.x, v.y }
 		{
 		}
 
 		template <typename U>
-		constexpr vector(const vector<U, 1>& v, F y)
+		constexpr vector(const vector<U, 1>& v, F y) noexcept
 			: vector { v.x, y }
 		{
 		}
 
 		template <typename U>
-		constexpr vector& operator =(const vector<U, 2>& v)
+		constexpr vector& operator =(const vector<U, 2>& v) noexcept
 		{
 			return *this = vector { v.x, v.y };
 		}
 	};
 
 	template <typename F>
-	constexpr const vector<F, 2> operator -(const vector<F, 2>& v)
+	constexpr const vector<F, 2> operator -(const vector<F, 2>& v) noexcept
 	{
 		return { -v.x, -v.y };
 	}
 
 	template <typename F>
-	constexpr const vector<F, 2> operator +(const vector<F, 2>& a, const vector<F, 2>& b)
+	constexpr const vector<F, 2> operator +(const vector<F, 2>& a, const vector<F, 2>& b) noexcept
 	{
 		return { a.x + b.x, a.y + b.y };
 	}
 
 	template <typename F>
-	constexpr const vector<F, 2> operator -(const vector<F, 2>& a, const vector<F, 2>& b)
+	constexpr const vector<F, 2> operator -(const vector<F, 2>& a, const vector<F, 2>& b) noexcept
 	{
 		return { a.x - b.x, a.y - b.y };
 	}
 
 	template <typename F>
-	constexpr const vector<F, 2> operator *(F s, const vector<F, 2>& v)
+	constexpr const vector<F, 2> operator *(F s, const vector<F, 2>& v) noexcept
 	{
 		return { s * v.x, s * v.y };
 	}
 
 	template <typename F>
-	constexpr bool operator ==(const vector<F, 2>& a, const vector<F, 2>& b)
+	constexpr bool operator ==(const vector<F, 2>& a, const vector<F, 2>& b) noexcept
 	{
 		return a.x == b.x && a.y == b.y;
 	}
 
 	template <typename F>
-	constexpr auto dot(const vector<F, 2>& a, const vector<F, 2>& b)
+	constexpr auto dot(const vector<F, 2>& a, const vector<F, 2>& b) noexcept
 	{
 		return a.x * b.x + a.y * b.y;
 	}
@@ -99,73 +99,73 @@ namespace math
 
 		vector() = default;
 
-		constexpr vector(F x, F y, F z)
+		constexpr vector(F x, F y, F z) noexcept
 			: x(x), y(y), z(z)
 		{
 		}
 
-		constexpr explicit vector(F a)
+		constexpr explicit vector(F a) noexcept
 			: vector { a, a, a }
 		{
 		}
 
 		template <typename U>
-		constexpr vector(const vector<U, 3>& v)
+		constexpr vector(const vector<U, 3>& v) noexcept
 			: vector { v.x, v.y, v.z }
 		{
 		}
 
 		template <typename U>
-		constexpr vector(const vector<U, 2>& v, F z)
+		constexpr vector(const vector<U, 2>& v, F z) noexcept
 			: vector { v.x, v.y, z }
 		{
 		}
 
 		template <typename U>
-		constexpr vector& operator =(const vector<U, 3>& v)
+		constexpr vector& operator =(const vector<U, 3>& v) noexcept
 		{
 			return *this = vector { v.x, v.y, v.z };
 		}
 	};
 
 	template <typename F>
-	constexpr const vector<F, 3> operator -(const vector<F, 3>& v)
+	constexpr const vector<F, 3> operator -(const vector<F, 3>& v) noexcept
 	{
 		return { -v.x, -v.y, -v.z };
 	}
 
 	template <typename F>
-	constexpr const vector<F, 3> operator +(const vector<F, 3>& a, const vector<F, 3>& b)
+	constexpr const vector<F, 3> operator +(const vector<F, 3>& a, const vector<F, 3>& b) noexcept
 	{
 		return { a.x + b.x, a.y + b.y, a.z + b.z };
 	}
 
 	template <typename F>
-	constexpr const vector<F, 3> operator -(const vector<F, 3>& a, const vector<F, 3>& b)
+	constexpr const vector<F, 3> operator -(const vector<F, 3>& a, const vector<F, 3>& b) noexcept
 	{
 		return { a.x - b.x, a.y - b.y, a.z - b.z };
 	}
 
 	template <typename F>
-	constexpr const vector<F, 3> operator *(F s, const vector<F, 3>& v)
+	constexpr const vector<F, 3> operator *(F s, const vector<F, 3>& v) noexcept
 	{
 		return { s * v.x, s * v.y, s * v.z };
 	}
 
 	template <typename F>
-	constexpr bool operator ==(const vector<F, 3>& a, const vector<F, 3>& b)
+	constexpr bool operator ==(const vector<F, 3>& a, const vector<F, 3>& b) noexcept
 	{
 		return a.x == b.x && a.y == b.y && a.z == b.z;
 	}
 
 	template <typename F>
-	constexpr auto dot(const vector<F, 3>& a, const vector<F, 3>& b)
+	constexpr auto dot(const vector<F, 3>& a, const vector<F, 3>& b) noexcept
 	{
 		return a.x * b.x + a.y * b.y + a.z * b.z;
 	}
 
 	template <typename F>
-	constexpr const vector<F, 3> cross(const vector<F, 3>& a, const vector<F, 3>& b)
+	constexpr const vector<F, 3> cross(const vector<F, 3>& a, const vector<F, 3>& b) noexcept
 	{
 		return { a.y * b.z - a.z * b.y,
 		         a.z * b.x - a.x * b.z,
@@ -180,67 +180,67 @@ namespace math
 
 		vector() = default;
 
-		constexpr vector(F x, F y, F z, F w)
+		constexpr vector(F x, F y, F z, F w) noexcept
 			: x(x), y(y), z(z), w(w)
 		{
 		}
 
-		constexpr explicit vector(F a)
+		constexpr explicit vector(F a) noexcept
 			: vector { a, a, a, a }
 		{
 		}
 
 		template <typename U>
-		constexpr vector(const vector<U, 4>& v)
+		constexpr vector(const vector<U, 4>& v) noexcept
 			: vector { v.x, v.y, v.z, v.w }
 		{
 		}
 
 		template <typename U>
-		constexpr vector(const vector<U, 3>& v, F w)
+		constexpr vector(const vector<U, 3>& v, F w) noexcept
 			: vector { v.x, v.y, v.z, w }
 		{
 		}
 
 		template <typename U>
-		constexpr vector& operator =(const vector<U, 4>& v)
+		constexpr vector& operator =(const vector<U, 4>& v) noexcept
 		{
 			return *this = vector { v.x, v.y, v.z, v.w };
 		}
 	};
 
 	template <typename F>
-	constexpr const vector<F, 4> operator -(const vector<F, 4>& v)
+	constexpr const vector<F, 4> operator -(const vector<F, 4>& v) noexcept
 	{
 		return { -v.x, -v.y, -v.z, -v.w };
 	}
 
 	template <typename F>
-	constexpr const vector<F, 4> operator +(const vector<F, 4>& a, const vector<F, 4>& b)
+	constexpr const vector<F, 4> operator +(const vector<F, 4>& a, const vector<F, 4>& b) noexcept
 	{
 		return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 	}
 
 	template <typename F>
-	constexpr const vector<F, 4> operator -(const vector<F, 4>& a, const vector<F, 4>& b)
+	constexpr const vector<F, 4> operator -(const vector<F, 4>& a, const vector<F, 4>& b) noexcept
 	{
 		return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
 	}
 
 	template <typename F>
-	constexpr const vector<F, 4> operator *(F s, const vector<F, 4>& v)
+	constexpr const vector<F, 4> operator *(F s, const vector<F, 4>& v) noexcept
 	{
 		return { s * v.x, s * v.y, s * v.z, s * v.w };
 	}
 
 	template <typename F>
-	constexpr bool operator ==(const vector<F, 4>& a, const vector<F, 4>& b)
+	constexpr bool operator ==(const vector<F, 4>& a, const vector<F, 4>& b) noexcept
 	{
 		return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
 	}
 
 	template <typename F>
-	constexpr auto dot(const vector<F, 4>& a, const vector<F, 4>& b)
+	constexpr auto dot(const vector<F, 4>& a, const vector<F, 4>& b) noexcept
 	{
 		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 	}
@@ -248,31 +248,31 @@ namespace math
 
 
 	template <typename F, int D>
-	constexpr const vector<F, D> operator *(const vector<F, D>& v, F s)
+	constexpr const vector<F, D> operator *(const vector<F, D>& v, F s) noexcept
 	{
 		return s * v;
 	}
 
 	template <typename F, int D>
-	constexpr decltype(auto) operator +=(vector<F, D>& a, const vector<F, D>& b)
+	constexpr decltype(auto) operator +=(vector<F, D>& a, const vector<F, D>& b) noexcept
 	{
 		return a = a + b;
 	}
 
 	template <typename F, int D>
-	constexpr decltype(auto) operator -=(vector<F, D>& a, const vector<F, D>& b)
+	constexpr decltype(auto) operator -=(vector<F, D>& a, const vector<F, D>& b) noexcept
 	{
 		return a = a - b;
 	}
 
 	template <typename F, int D>
-	constexpr decltype(auto) operator *=(vector<F, D>& v, F s)
+	constexpr decltype(auto) operator *=(vector<F, D>& v, F s) noexcept
 	{
 		return v = v * s;
 	}
 
 	template <typename F, int D>
-	constexpr bool operator !=(const vector<F, D>& a, const vector<F, D>& b)
+	constexpr bool operator !=(const vector<F, D>& a, const vector<F, D>& b) noexcept
 	{
 		return !(a == b);
 	}
@@ -280,13 +280,13 @@ namespace math
 
 
 	template <typename V>
-	constexpr auto length(const V& v)
+	constexpr auto length(const V& v) noexcept
 	{
 		return sqrt(dot(v, v));
 	}
 
 	template <typename V>
-	constexpr auto normalize(const V& v)
+	constexpr auto normalize(const V& v) noexcept
 	{
 		return v * rcp(length(v));
 	}

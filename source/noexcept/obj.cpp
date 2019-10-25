@@ -70,46 +70,52 @@ namespace
 		}
 
 		[[nodiscard]]
-		bool consumeVertex(OBJ::Stream& stream, float x, float y, float z) noexcept
+		OBJ::error consumeVertex(OBJ::Stream& stream, float x, float y, float z) noexcept
 		{
-			return v.emplace_back(x, y, z);
+			if (!v.emplace_back(x, y, z))
+				return OBJ::error::ALLOCATION_FAILED;
+			return OBJ::error::SUCCESS;
 		}
 
 		[[nodiscard]]
-		bool consumeVertex(OBJ::Stream& stream, float x, float y, float z, float w) noexcept
+		OBJ::error consumeVertex(OBJ::Stream& stream, float x, float y, float z, float w) noexcept
 		{
 			stream.error("weighted vertex coordinates are not supported");
-			return false;
+			return OBJ::error::UNSUPPORTED_FEATURE;
 		}
 
 		[[nodiscard]]
-		bool consumeNormal(OBJ::Stream& stream, float x, float y, float z) noexcept
+		OBJ::error consumeNormal(OBJ::Stream& stream, float x, float y, float z) noexcept
 		{
-			return vn.emplace_back(x, y, z);
+			if (!vn.emplace_back(x, y, z))
+				return OBJ::error::ALLOCATION_FAILED;
+			return OBJ::error::SUCCESS;
 		}
 
 		[[nodiscard]]
-		bool consumeTexcoord(OBJ::Stream& stream, float u) noexcept
+		OBJ::error consumeTexcoord(OBJ::Stream& stream, float u) noexcept
 		{
 			stream.error("1D texture coordinates are not supported");
-			return false;
+			return OBJ::error::UNSUPPORTED_FEATURE;
 		}
 
 		[[nodiscard]]
-		bool consumeTexcoord(OBJ::Stream& stream, float u, float v) noexcept
+		OBJ::error consumeTexcoord(OBJ::Stream& stream, float u, float v) noexcept
 		{
-			return vt.emplace_back(u, 1.0f - v);
+			if (!vt.emplace_back(u, 1.0f - v))
+				return OBJ::error::ALLOCATION_FAILED;
+			return OBJ::error::SUCCESS;
 		}
 
 		[[nodiscard]]
-		bool consumeTexcoord(OBJ::Stream& stream, float u, float v, float w) noexcept
+		OBJ::error consumeTexcoord(OBJ::Stream& stream, float u, float v, float w) noexcept
 		{
 			stream.error("3D texture coordinates are not supported");
-			return false;
+			return OBJ::error::UNSUPPORTED_FEATURE;
 		}
 
 		[[nodiscard]]
-		bool consumeFaceVertex(OBJ::Stream& stream, int vi, int ni, int ti) noexcept
+		OBJ::error consumeFaceVertex(OBJ::Stream& stream, int vi, int ni, int ti) noexcept
 		{
 			if (vi < 0)
 				vi = static_cast<int>(size(v)) + vi;
@@ -125,74 +131,74 @@ namespace
 			auto vertex = vertex_map.try_emplace({ vi, ni, ti }, static_cast<int>(size(positions)));
 
 			if (!vertex)
-				return false;
+				return OBJ::error::ALLOCATION_FAILED;
 
 			auto [fv, inserted] = *vertex;
 
 			if (inserted)
 			{
 				if (!positions.push_back(v[vi]))
-					return false;
+					return OBJ::error::ALLOCATION_FAILED;
 				if (!normals.push_back(vn[ni]))
-					return false;
+					return OBJ::error::ALLOCATION_FAILED;
 				if (!texcoords.push_back(vt[ti]))
-					return false;
+					return OBJ::error::ALLOCATION_FAILED;
 			}
 
 			if (num_face_vertices >= MAX_FACE_VERTICES)
 				stream.error("this face has too many vertices");
 			face_vertices[num_face_vertices++] = fv->second;
-			return true;
+			return OBJ::error::SUCCESS;
 		}
 
 		[[nodiscard]]
-		bool finishFace(OBJ::Stream& stream) noexcept
+		OBJ::error finishFace(OBJ::Stream& stream) noexcept
 		{
 			if (num_face_vertices < 3)
 				stream.error("face must have at least three vertices");
 
 			for (int i = 2; i < num_face_vertices; ++i)
 				if (!triangles.push_back({ face_vertices[0], face_vertices[i - 1], face_vertices[i] }))
-					return false;
+					return OBJ::error::ALLOCATION_FAILED;
 
 			num_face_vertices = 0;
-			return true;
+			return OBJ::error::SUCCESS;
 		}
 
-		bool consumeObjectName(OBJ::Stream& stream, std::string_view name) noexcept
+		OBJ::error consumeObjectName(OBJ::Stream& stream, std::string_view name) noexcept
 		{
-			return true;
+			return OBJ::error::SUCCESS;
 		}
 
-		bool consumeGroupName(OBJ::Stream& stream, std::string_view name) noexcept
+		OBJ::error consumeGroupName(OBJ::Stream& stream, std::string_view name) noexcept
 		{
-			return true;
+			return OBJ::error::SUCCESS;
 		}
 
-		bool finishGroupAssignment(OBJ::Stream& streame) noexcept
+		OBJ::error finishGroupAssignment(OBJ::Stream& streame) noexcept
 		{
-			return true;
+			return OBJ::error::SUCCESS;
 		}
 
 		[[nodiscard]]
-		bool consumeSmoothingGroup(OBJ::Stream& stream, int n) noexcept
+		OBJ::error consumeSmoothingGroup(OBJ::Stream& stream, int n) noexcept
 		{
 			stream.warn("smoothing groups are ignored!");
-			return true;
+			return OBJ::error::SUCCESS;
 		}
 
 		[[nodiscard]]
-		bool consumeMtlLib(OBJ::Stream& stream, std::string_view name) noexcept
+		OBJ::error consumeMtlLib(OBJ::Stream& stream, std::string_view name) noexcept
 		{
 			stream.warn("materials are ignored!");
-			return true;
+			return OBJ::error::SUCCESS;
 		}
 
 		[[nodiscard]]
-		bool consumeUseMtl(OBJ::Stream& stream, std::string_view name) noexcept
+		OBJ::error consumeUseMtl(OBJ::Stream& stream, std::string_view name) noexcept
 		{
 			stream.warn("materials are ignored!");
-			return true;
+			return OBJ::error::SUCCESS;
 		}
 
 		OBJ::Triangles finish() noexcept

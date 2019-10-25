@@ -120,6 +120,8 @@ public:
 
 	dynamic_array(dynamic_array&&) = default;
 
+	dynamic_array& operator =(dynamic_array&&) = default;
+
 	~dynamic_array()
 	{
 		destroyContent();

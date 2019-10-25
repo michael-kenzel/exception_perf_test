@@ -36,7 +36,8 @@ int main(int argc, const char* argv[])
 		return -1;
 	}
 
-	obj.triangles.push_back({});
+	if (!obj.triangles.push_back({}))
+		return -1;
 
 	printf("%zu positions, %zu normals, %zu texcoords, %zu triangles\n", size(obj.positions), size(obj.normals), size(obj.texcoords), size(obj.triangles));
 

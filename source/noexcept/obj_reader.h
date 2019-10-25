@@ -14,7 +14,7 @@ namespace OBJ
 		Consumer& consumer;
 
 		[[nodiscard]]
-		bool consumeVertex(OBJ::Stream& stream) noexcept
+		OBJ::error consumeVertex(OBJ::Stream& stream) noexcept
 		{
 			if (auto x = stream.expectFloat(); x && stream.expectHorizontalWS())
 			{
@@ -25,22 +25,22 @@ namespace OBJ
 						if (float w; stream.consumeHorizontalWS() && stream.consumeFloat(w))
 						{
 							if (!stream.expectLineEnd())
-								return false;
+								return OBJ::error::SYNTAX_ERROR;
 							return consumer.consumeVertex(stream, *x, *y, *z, w);
 						}
 
 						if (!stream.expectLineEnd())
-							return false;
+							return OBJ::error::SYNTAX_ERROR;
 						return consumer.consumeVertex(stream, *x, *y, *z);
 					}
 				}
 			}
 
-			return false;
+			return OBJ::error::SYNTAX_ERROR;
 		}
 
 		[[nodiscard]]
-		bool consumeNormal(OBJ::Stream& stream) noexcept
+		OBJ::error consumeNormal(OBJ::Stream& stream) noexcept
 		{
 			if (auto x = stream.expectFloat(); x && stream.expectHorizontalWS())
 			{
@@ -53,11 +53,11 @@ namespace OBJ
 				}
 			}
 
-			return false;
+			return OBJ::error::SYNTAX_ERROR;
 		}
 
 		[[nodiscard]]
-		bool consumeTexcoord(OBJ::Stream& stream) noexcept
+		OBJ::error consumeTexcoord(OBJ::Stream& stream) noexcept
 		{
 			if (auto u = stream.expectFloat())
 			{
@@ -66,32 +66,32 @@ namespace OBJ
 					if (float w; stream.consumeHorizontalWS() && stream.consumeFloat(w))
 					{
 						if (!stream.expectLineEnd())
-							return false;
+							return OBJ::error::SYNTAX_ERROR;
 						return consumer.consumeTexcoord(stream, *u, v, w);
 					}
 
 					if (!stream.expectLineEnd())
-						return false;
+						return OBJ::error::SYNTAX_ERROR;
 					return consumer.consumeTexcoord(stream, *u, v);
 				}
 
 				if (!stream.expectLineEnd())
-					return false;
+					return OBJ::error::SYNTAX_ERROR;
 				return consumer.consumeTexcoord(stream, *u);
 			}
 
-			return false;
+			return OBJ::error::SYNTAX_ERROR;
 		}
 
 		[[nodiscard]]
-		bool consumeFace(OBJ::Stream& stream) noexcept
+		OBJ::error consumeFace(OBJ::Stream& stream) noexcept
 		{
 			do
 			{
 				auto v = stream.expectInteger();
 
 				if (!v)
-					return false;
+					return OBJ::error::SYNTAX_ERROR;
 
 				int t = 0;
 				int n = 0;
@@ -104,51 +104,49 @@ namespace OBJ
 						stream.consumeInteger(n);
 				}
 
-				if (!consumer.consumeFaceVertex(stream, v, n, t))
-					return false;
+				if (auto ret = consumer.consumeFaceVertex(stream, *v, n, t); ret != OBJ::error::SUCCESS)
+					return ret;
 			} while (!stream.finishLine());
 
 			return consumer.finishFace(stream);
 		}
 
 		[[nodiscard]]
-		bool consumeObjectName(OBJ::Stream& stream) noexcept
+		OBJ::error consumeObjectName(OBJ::Stream& stream) noexcept
 		{
 			if (auto name = stream.expectNonWS())
 			{
 				while (!stream.finishLine())
 				{
 					auto n = stream.consumeNonWS();
-
-					if (!n)
-						return false;
-
-					*name = { &*name[0], static_cast<std::size_t>((&*n[0] + size(n)) - &*name[0]) };
+					*name = { &(*name)[0], static_cast<std::size_t>((&n[0] + size(n)) - &(*name)[0]) };
 				}
 
 				return consumer.consumeObjectName(stream, *name);
 			}
 
-			return false;
+			return OBJ::error::SYNTAX_ERROR;
 		}
 
 		[[nodiscard]]
-		bool consumeGroupName(OBJ::Stream& stream) noexcept
+		OBJ::error consumeGroupName(OBJ::Stream& stream) noexcept
 		{
 			do
 			{
-				if (auto name = stream.expectNonWS())
-				{
-					if (!consumer.consumeGroupName(stream, *name))
-						return false;
-				}
+				auto name = stream.expectNonWS();
+
+				if (!name)
+					return OBJ::error::SYNTAX_ERROR;
+
+				if (auto ret = consumer.consumeGroupName(stream, *name); ret != OBJ::error::SUCCESS)
+					return ret;
 			} while (!stream.finishLine());
 
 			return consumer.finishGroupAssignment(stream);
 		}
 
 		[[nodiscard]]
-		bool consumeSmoothingGroup(OBJ::Stream& stream) noexcept
+		OBJ::error consumeSmoothingGroup(OBJ::Stream& stream) noexcept
 		{
 			int n;
 
@@ -161,30 +159,30 @@ namespace OBJ
 				else
 				{
 					stream.error("expected smoothing group index or 'off'");
-					return false;
+					return OBJ::error::SYNTAX_ERROR;
 				}
 			}
 
 			if (!stream.expectLineEnd())
-				return false;
+				return OBJ::error::SYNTAX_ERROR;
 
 			return consumer.consumeSmoothingGroup(stream, n);
 		}
 
 		[[nodiscard]]
-		bool consumeMtlLib(OBJ::Stream& stream) noexcept
+		OBJ::error consumeMtlLib(OBJ::Stream& stream) noexcept
 		{
 			if (auto name = stream.expectNonWS(); name && stream.expectLineEnd())
 				return consumer.consumeMtlLib(stream, *name);
-			return false;
+			return OBJ::error::SYNTAX_ERROR;
 		}
 
 		[[nodiscard]]
-		bool consumeUseMtl(OBJ::Stream& stream) noexcept
+		OBJ::error consumeUseMtl(OBJ::Stream& stream) noexcept
 		{
 			if (auto name = stream.expectNonWS(); name && stream.expectLineEnd())
-				return consumer.consumeUseMtl(stream, name);
-			return false;
+				return consumer.consumeUseMtl(stream, *name);
+			return OBJ::error::SYNTAX_ERROR;
 		}
 
 	public:
@@ -194,23 +192,23 @@ namespace OBJ
 		}
 
 		[[nodiscard]]
-		bool consume(OBJ::Stream& stream, char c) noexcept
+		OBJ::error consume(OBJ::Stream& stream, char c) noexcept
 		{
 			switch (c)
 			{
 			case 'v':
 				if (stream.consumeHorizontalWS())
 				{
-					if (!consumeVertex(stream))
-						return false;
+					if (auto ret = consumeVertex(stream); ret != OBJ::error::SUCCESS)
+						return ret;
 					break;
 				}
 				else if (stream.consume<'n'>())
 				{
 					if (stream.consumeHorizontalWS())
 					{
-						if (!consumeNormal(stream))
-							return false;
+						if (auto ret = consumeNormal(stream); ret != OBJ::error::SUCCESS)
+							return ret;
 						break;
 					}
 				}
@@ -218,8 +216,8 @@ namespace OBJ
 				{
 					if (stream.consumeHorizontalWS())
 					{
-						if (!consumeTexcoord(stream))
-							return false;
+						if (auto ret = consumeTexcoord(stream); ret != OBJ::error::SUCCESS)
+							return ret;
 						break;
 					}
 				}
@@ -228,8 +226,8 @@ namespace OBJ
 			case 'f':
 				if (stream.consumeHorizontalWS())
 				{
-					if (!consumeFace(stream))
-						return false;
+					if (auto ret = consumeFace(stream); ret != OBJ::error::SUCCESS)
+						return ret;
 					break;
 				}
 				[[fallthrough]];
@@ -237,8 +235,8 @@ namespace OBJ
 			case 'o':
 				if (stream.consumeHorizontalWS())
 				{
-					if (!consumeObjectName(stream))
-						return false;
+					if (auto ret = consumeObjectName(stream); ret != OBJ::error::SUCCESS)
+						return ret;
 					break;
 				}
 				[[fallthrough]];
@@ -246,8 +244,8 @@ namespace OBJ
 			case 'g':
 				if (stream.consumeHorizontalWS())
 				{
-					if (!consumeGroupName(stream))
-						return false;
+					if (auto ret = consumeGroupName(stream); ret != OBJ::error::SUCCESS)
+						return ret;
 					break;
 				}
 				[[fallthrough]];
@@ -255,8 +253,8 @@ namespace OBJ
 			case 's':
 				if (stream.consumeHorizontalWS())
 				{
-					if (!consumeSmoothingGroup(stream))
-						return false;
+					if (auto ret = consumeSmoothingGroup(stream); ret != OBJ::error::SUCCESS)
+						return ret;
 					break;
 				}
 				[[fallthrough]];
@@ -265,8 +263,8 @@ namespace OBJ
 				if (stream.consume<'t', 'l', 'l', 'i', 'b'>())
 				{
 					if (stream.consumeHorizontalWS())
-						if (!consumeMtlLib(stream))
-							return false;
+						if (auto ret = consumeMtlLib(stream); ret != OBJ::error::SUCCESS)
+							return ret;
 					break;
 				}
 				[[fallthrough]];
@@ -275,22 +273,22 @@ namespace OBJ
 				if (stream.consume<'s', 'e', 'm', 't', 'l'>())
 				{
 					if (stream.consumeHorizontalWS())
-						if (!consumeUseMtl(stream))
-							return false;
+						if (auto ret = consumeUseMtl(stream); ret != OBJ::error::SUCCESS)
+							return ret;
 					break;
 				}
 				[[fallthrough]];
 
 			default:
 				stream.error("unknown command");
-				return false;
+				return OBJ::error::SYNTAX_ERROR;
 
 			case '#':
 				stream.skipLine();
 				break;
 			}
 
-			return true;
+			return OBJ::error::SUCCESS;
 		}
 	};
 }
