@@ -19,7 +19,11 @@ OBJ loader because
 
 lack of exceptions brings severe restrictions:
 	no way for constructors to fail
+		cannot initialize a container to reserve space for N elements
+			can only add elements later
 		cannot initialize container members with data in a constructor
+		means additional checks in consumeFaceVertex
+			otherwise, need init function
 	cannot use standard containers
 	no way to define copy constructors or copy assignment operators for containers (allocation might fail, no way to return error codes)
 	have to translate error codes at boundaries

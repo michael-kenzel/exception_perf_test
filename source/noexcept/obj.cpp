@@ -64,11 +64,6 @@ namespace
 		int num_face_vertices = 0;
 
 	public:
-		OBJConsumer() noexcept
-			//: vn {{ 0.0f, 0.0f, 0.0f }}, vt {{ 0.0f, 0.0f }}
-		{
-		}
-
 		[[nodiscard]]
 		OBJ::error consumeVertex(OBJ::Stream& stream, float x, float y, float z) noexcept
 		{
@@ -139,9 +134,11 @@ namespace
 			{
 				if (!positions.push_back(v[vi]))
 					return OBJ::error::ALLOCATION_FAILED;
-				if (!normals.push_back(vn[ni]))
+
+				if (auto n = ni == 0 ? float3 { 0.0f, 0.0f, 0.0f } : vn[ni]; !normals.push_back(n))
 					return OBJ::error::ALLOCATION_FAILED;
-				if (!texcoords.push_back(vt[ti]))
+
+				if (auto t = ti == 0 ? float2 { 0.0f, 0.0f } : vt[ti]; !texcoords.push_back(t))
 					return OBJ::error::ALLOCATION_FAILED;
 			}
 
@@ -211,7 +208,7 @@ namespace
 	{
 		auto len = std::strlen(path);
 
-		auto beg = std::find_if(std::make_reverse_iterator(path), std::make_reverse_iterator(path + len), [](auto c)
+		auto beg = std::find_if(std::make_reverse_iterator(path + len), std::make_reverse_iterator(path), [](auto c)
 		{
 			return c == '/' || c == '\\';
 		});
@@ -241,7 +238,7 @@ namespace
 		if (!file)
 			return OBJ::error::FAILED_TO_OPEN_FILE;
 
-		if (!fseek(file.get(), 0, SEEK_END))
+		if (fseek(file.get(), 0, SEEK_END) != 0)
 			return OBJ::error::FAILED_TO_READ_FILE;
 
 		auto size = ftell(file.get());
@@ -249,7 +246,7 @@ namespace
 		if (size == -1L)
 			return OBJ::error::FAILED_TO_READ_FILE;
 
-		if (!fseek(file.get(), 0, SEEK_SET))
+		if (fseek(file.get(), 0, SEEK_SET) != 0)
 			return OBJ::error::FAILED_TO_READ_FILE;
 
 		auto data = std::unique_ptr<char[]>{ new char[size] };

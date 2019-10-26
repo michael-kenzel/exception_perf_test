@@ -58,8 +58,8 @@ private:
 	};
 
 	std::unique_ptr<element_storage_t[]> buffer;
-	size_type size = 0;
-	size_type capacity = 0;
+	size_type num_elements = 0;
+	size_type max_num_elements = 0;
 
 	static auto allocStorage(size_type size) noexcept
 	{
@@ -68,7 +68,7 @@ private:
 
 	void destroyContent() noexcept
 	{
-		for (auto p = &buffer[0] + size; p >= &buffer[0]; --p)
+		for (auto p = &buffer[0] + num_elements; p >= &buffer[0]; --p)
 			p->destruct();
 	}
 
@@ -76,12 +76,12 @@ private:
 	{
 		if constexpr (std::is_nothrow_move_constructible_v<T>)
 		{
-			std::move(&buffer[0], &buffer[0] + size, &new_buffer[0]);
+			std::move(&buffer[0], &buffer[0] + num_elements, &new_buffer[0]);
 		}
 		else
 		{
 			static_assert(std::is_nothrow_copy_constructible_v<T>);
-			std::copy(&buffer[0], &buffer[0] + size, &new_buffer[0]);
+			std::copy(&buffer[0], &buffer[0] + num_elements, &new_buffer[0]);
 			destroyContent();
 		}
 
@@ -90,15 +90,15 @@ private:
 
 	size_type expandCapacity(size_type new_size) const noexcept
 	{
-		if (capacity > max_size() - capacity / 2)
+		if (max_num_elements > max_size() - max_num_elements / 2)
 			return max_size();
-		return std::max(capacity + capacity / 2, new_size);
+		return std::max(max_num_elements + max_num_elements / 2, new_size);
 	}
 
 	[[nodiscard]]
 	bool grow(size_type new_size) noexcept
 	{
-		if (new_size > capacity)
+		if (new_size > max_num_elements)
 		{
 			if (new_size > max_size())
 				return false;
@@ -107,10 +107,10 @@ private:
 			if (!new_buffer)
 				return false;
 			moveContent(std::move(new_buffer));
-			capacity = new_capacity;
+			max_num_elements = new_capacity;
 		}
 
-		size = new_size;
+		num_elements = new_size;
 
 		return true;
 	}
@@ -131,9 +131,9 @@ public:
 	[[nodiscard]]
 	bool emplace_back(Args&&... args) noexcept
 	{
-		if (!grow(size + 1))
+		if (!grow(num_elements + 1))
 			return false;
-		buffer[size++].construct(std::forward<Args>(args)...);
+		buffer[num_elements - 1].construct(std::forward<Args>(args)...);
 		return true;
 	}
 
@@ -153,9 +153,19 @@ public:
 		return buffer[i].v;
 	}
 
+	size_type size() const noexcept
+	{
+		return num_elements;
+	}
+
+	size_type capacity() const noexcept
+	{
+		return max_num_elements;
+	}
+
 	friend size_type size(const dynamic_array& arr) noexcept
 	{
-		return arr.size;
+		return arr.num_elements;
 	}
 };
 

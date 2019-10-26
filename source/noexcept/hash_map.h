@@ -11,6 +11,8 @@
 #include <functional>
 #include <algorithm>
 
+#include "dynamic_array.h"
+
 
 template <typename Key, typename Value, typename Hash = std::hash<Key>>
 class hash_map
@@ -28,6 +30,12 @@ public:
 	using const_pointer = const value_type*;
 
 private:
+	dynamic_array<value_type> table;
+
+	bool resize()
+	{
+		return table.size() * 4 > table.capacity() * 3;
+	}
 
 public:
 	template <typename... Args>
